@@ -1,21 +1,23 @@
 # HouseBalance
 
-HouseBalance is a full-stack information system for recording shared household expenses, splitting them between participants, calculating explainable balances, suggesting settlement payments, recording repayments, and preserving an audit history.
+HouseBalance is my Systems III seminar project. I made it for households whose
+members want to record shared expenses and see who owes whom. The application
+supports three ways of splitting an expense, records repayments, suggests a
+settlement plan and keeps a history of the main actions.
 
-The implementation follows the Systems III seminar design and the permitted course stack:
+I used the same technologies and database design described in the seminar report:
 
 - Frontend: React, JavaScript, HTML, CSS, Bootstrap, Vite, React Router
 - Backend: Node.js, Express
 - Database: MySQL or MariaDB with `mysql2`
 - Authentication: JWT tokens and `bcryptjs` password hashes
-- HTTP client: the browser's plain `fetch()` API
+- HTTP requests: the browser's `fetch()` API
 - Configuration: `dotenv`
 
-There is no TypeScript, Next.js, Tailwind, ORM, Redux, Material UI, or Docker deployment.
+## Balance calculation
 
-## Most important design rule
-
-There is **no balance table** and no permanent member-balance field.
+Balances are not stored in a separate table. They are calculated from the saved
+expenses, expense shares and settlements.
 
 For every active member, the API calculates:
 
@@ -30,7 +32,8 @@ net balance = expenses paid
 - Negative balance: the member owes money.
 - Zero balance: the member is settled.
 
-Because the calculation reads `expense`, `expense_split`, and `settlement` every time, the displayed result can be explained and verified from its source records.
+This means that each displayed balance can be checked against the records that
+were used to calculate it.
 
 ## Project structure
 
@@ -69,7 +72,7 @@ housebalance/
 - MySQL 8+ or a compatible MariaDB version
 - phpMyAdmin is optional but recommended for the course database setup
 
-The selected dependency versions remain compatible with the Node 16.13.1 version used by the student server.
+The dependency versions in the project also work with Node 16.13.1 on the student server.
 
 ## 1. Create or select the MySQL database
 
@@ -172,13 +175,12 @@ VITE_API_URL=http://localhost:5000/api
 
 If this variable is missing, the frontend uses `http://localhost:5000/api` by default.
 
-## Seeded sample data
+## Sample data
 
-The seed script creates three local sample users and the `Apartment` group. Plain-text
-demo passwords are intentionally not published in this public repository. To test
-authentication, register a new local account or set a private local-only password for
-a seeded user before running the demonstration. Passwords stored by the application
-are bcrypt hashes; plain-text passwords are never stored in the database.
+The seed script adds three sample users and one group called `Apartment`. The
+public version does not include working passwords or invitation codes. These
+values must be set privately before importing the file. In the application,
+passwords are stored as bcrypt hashes.
 
 The sample `Apartment` group contains:
 
@@ -213,7 +215,8 @@ The settlement plan therefore suggests two payments: Nikola to Marko for 20.00 E
 12. Greedy debtor-to-creditor settlement plan
 13. Group audit/history log
 
-Default categories are created in the same database transaction as a new group. Expense insertion, split insertion, deletion, settlements, invitations, and audit actions also use transactions where multiple records must stay consistent.
+The backend uses database transactions for actions that change several related
+records, for example creating an expense together with its splits.
 
 ## API endpoints
 
@@ -280,7 +283,8 @@ The backend checks active group membership for every group-scoped endpoint. Cate
 - Inactive categories remain connected to old expenses but cannot be selected for a new expense.
 - Only the expense creator or a group administrator may delete an expense.
 
-The frontend performs friendly validation, but the backend repeats every financial and access validation because browser input cannot be trusted.
+The frontend checks the form first, and the backend checks the same important
+financial and access rules before saving anything.
 
 ## Verification commands
 
@@ -327,16 +331,16 @@ NODE_ENV=production npm start
 
 For a long-running university-server process, use the process-management method approved by the lecturer or server administrator.
 
-## Git course requirement
+## Git branches
 
-The implementation instructions require a Git repository, meaningful incremental commits, and at least a stable branch plus a development branch. Create commits as you study, test, and improve each part so the history truthfully demonstrates your work. A sensible branch structure is:
+The repository uses two main branches:
 
 ```text
-main        tested stable versions
-develop     integrated ongoing development
-feature/*   individual functions such as expenses or settlements
+main          tested version
+development   ongoing work
 ```
 
-Do not commit passwords, JWT secrets, `node_modules`, or built `dist` files.
+Passwords, JWT secrets, `node_modules` and the generated `dist` folder are not
+committed.
 
 See `docs/COURSE_ALIGNMENT.md` for the direct mapping between the course/tutorial material and this implementation.
