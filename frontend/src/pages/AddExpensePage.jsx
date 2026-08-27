@@ -237,7 +237,7 @@ export default function AddExpensePage() {
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="description">Description</label>
-              <textarea id="description" name="description" className="form-control" rows="2" value={form.description} onChange={updateForm} placeholder="What was purchased?" />
+              <textarea id="description" name="description" className="form-control" rows="2" maxLength="255" value={form.description} onChange={updateForm} placeholder="What was purchased?" />
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="split_type">Split type</label>
