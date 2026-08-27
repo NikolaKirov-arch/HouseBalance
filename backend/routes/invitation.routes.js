@@ -7,6 +7,10 @@ const addAuditLog = require('../utils/audit');
 
 const router = express.Router();
 
+function validEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 router.get('/invitations', auth, async (req, res, next) => {
   try {
     await pool.execute(
@@ -181,6 +185,12 @@ router.post(
 
     if (!email) {
       return res.status(400).json({ error: 'The invited user email is required.' });
+    }
+    if (!validEmail(email)) {
+      return res.status(400).json({ error: 'Enter a valid email address.' });
+    }
+    if (email.length > 255) {
+      return res.status(400).json({ error: 'Email may contain at most 255 characters.' });
     }
     if (!Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 30) {
       return res.status(400).json({ error: 'Invitation duration must be between 1 and 30 days.' });
