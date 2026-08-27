@@ -25,11 +25,10 @@ export async function apiFetch(path, options = {}) {
   if (!response.ok) {
     if (response.status === 401 && token) {
       localStorage.removeItem('housebalance_token');
-      window.dispatchEvent(new Event('housebalance-auth-changed'));
+      window.location.assign('/login');
     }
     throw new Error(data.error || `Request failed with status ${response.status}.`);
   }
 
   return data;
 }
-
