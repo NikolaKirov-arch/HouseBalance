@@ -28,16 +28,9 @@ export function AuthProvider({ children }) {
       }
     }
 
-    function authChanged() {
-      setUser(null);
-      setLoading(false);
-    }
-
     loadUser();
-    window.addEventListener('housebalance-auth-changed', authChanged);
     return () => {
       active = false;
-      window.removeEventListener('housebalance-auth-changed', authChanged);
     };
   }, []);
 
@@ -65,4 +58,3 @@ export function useAuth() {
   }
   return context;
 }
-
