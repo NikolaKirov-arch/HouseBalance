@@ -1,19 +1,16 @@
 import { useState } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import AlertMessage from '../components/AlertMessage';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const { user, login } = useAuth();
-  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  if (user) {
-    return <Navigate to={location.state?.from?.pathname || '/groups'} replace />;
-  }
+  if (user) return <Navigate to="/groups" replace />;
 
   function updateField(event) {
     setForm({ ...form, [event.target.name]: event.target.value });
