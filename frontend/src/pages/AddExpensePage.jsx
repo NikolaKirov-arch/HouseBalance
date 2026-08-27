@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { apiFetch } from '../api';
 import AlertMessage from '../components/AlertMessage';
@@ -34,9 +34,11 @@ export default function AddExpensePage() {
         if (!active) return;
         setMembers(memberData.members);
         setCategories(categoryData.categories.filter((category) => category.is_active));
-        setParticipantValues(Object.fromEntries(
-          memberData.members.map((member) => [member.member_id, { selected: true, value: '' }])
-        ));
+        const initialValues = {};
+        memberData.members.forEach((member) => {
+          initialValues[member.member_id] = { selected: true, value: '' };
+        });
+        setParticipantValues(initialValues);
         setForm((current) => ({
           ...current,
           payer_member_id: String(group.current_member.id),
@@ -48,9 +50,8 @@ export default function AddExpensePage() {
     return () => { active = false; };
   }, [groupId, group.current_member.id]);
 
-  const selectedMembers = useMemo(
-    () => members.filter((member) => participantValues[member.member_id]?.selected),
-    [members, participantValues]
+  const selectedMembers = members.filter(
+    (member) => participantValues[member.member_id]?.selected
   );
 
   const exactTotal = selectedMembers.reduce(
@@ -62,38 +63,33 @@ export default function AddExpensePage() {
     0
   );
   const amountCents = Math.round(Number(form.amount || 0) * 100);
-  const previewByMember = useMemo(() => {
-    const preview = new Map();
-    if (amountCents <= 0 || selectedMembers.length === 0) return preview;
-
+  const previewByMember = {};
+  if (amountCents > 0 && selectedMembers.length > 0) {
     if (form.split_type === 'equal') {
       const base = Math.floor(amountCents / selectedMembers.length);
       const remainder = amountCents % selectedMembers.length;
       selectedMembers.forEach((member, index) => {
-        preview.set(member.member_id, (base + (index < remainder ? 1 : 0)) / 100);
+        previewByMember[member.member_id] =
+          (base + (index < remainder ? 1 : 0)) / 100;
       });
-      return preview;
-    }
-
-    if (form.split_type === 'exact') {
+    } else if (form.split_type === 'exact') {
       selectedMembers.forEach((member) => {
-        preview.set(member.member_id, Number(participantValues[member.member_id]?.value || 0));
+        previewByMember[member.member_id] =
+          Number(participantValues[member.member_id]?.value || 0);
       });
-      return preview;
-    }
+    } else {
+      let allocatedCents = 0;
+      let percentageSoFar = 0;
 
-    let allocated = 0;
-    selectedMembers.forEach((member, index) => {
-      const percentage = Number(participantValues[member.member_id]?.value || 0);
-      const last = index === selectedMembers.length - 1;
-      const owed = last && percentageTotal === 100
-        ? amountCents - allocated
-        : Math.round((amountCents * percentage) / 100);
-      allocated += owed;
-      preview.set(member.member_id, owed / 100);
-    });
-    return preview;
-  }, [amountCents, selectedMembers, participantValues, form.split_type, percentageTotal]);
+      selectedMembers.forEach((member) => {
+        const percentage = Number(participantValues[member.member_id]?.value || 0);
+        percentageSoFar += Math.round(percentage * 100);
+        const targetCents = Math.round((amountCents * percentageSoFar) / 10000);
+        previewByMember[member.member_id] = (targetCents - allocatedCents) / 100;
+        allocatedCents = targetCents;
+      });
+    }
+  }
 
   function updateForm(event) {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -115,12 +111,14 @@ export default function AddExpensePage() {
   }
 
   function setAllParticipants(selected) {
-    setParticipantValues(Object.fromEntries(
-      members.map((member) => [
-        member.member_id,
-        { ...participantValues[member.member_id], selected }
-      ])
-    ));
+    const updatedValues = {};
+    members.forEach((member) => {
+      updatedValues[member.member_id] = {
+        ...participantValues[member.member_id],
+        selected
+      };
+    });
+    setParticipantValues(updatedValues);
   }
 
   function validate() {
@@ -177,7 +175,7 @@ export default function AddExpensePage() {
 
     const splits = selectedMembers.map((member) => ({
       member_id: member.member_id,
-      owed_amount: previewByMember.get(member.member_id),
+      owed_amount: previewByMember[member.member_id],
       percentage: form.split_type === 'percentage'
         ? Number(participantValues[member.member_id].value)
         : null
@@ -274,7 +272,7 @@ export default function AddExpensePage() {
                           </div>
                         ) : selected ? <span className="text-secondary">Calculated equally</span> : '-'}
                       </td>
-                      <td className="text-end fw-semibold">{selected ? formatMoney(previewByMember.get(member.member_id) || 0, group.currency) : '-'}</td>
+                      <td className="text-end fw-semibold">{selected ? formatMoney(previewByMember[member.member_id] || 0, group.currency) : '-'}</td>
                     </tr>
                   );
                 })}
