@@ -98,6 +98,24 @@ function testInvalidSplits() {
     () => validateAndBuildSplits({
       amount: 10,
       splitType: 'equal',
+      splits: [{ member_id: 0 }]
+    }),
+    /valid member id/
+  );
+
+  assert.throws(
+    () => validateAndBuildSplits({
+      amount: 10,
+      splitType: 'other',
+      splits: [{ member_id: 1 }]
+    }),
+    /Split type/
+  );
+
+  assert.throws(
+    () => validateAndBuildSplits({
+      amount: 10,
+      splitType: 'equal',
       splits: [{ member_id: 1 }, { member_id: 1 }]
     }),
     /cannot appear.*twice/
