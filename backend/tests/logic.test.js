@@ -36,6 +36,22 @@ async function runTests() {
   });
   assert.strictEqual(total(percentage), 10000);
 
+  const smallPercentage = validateAndBuildSplits({
+    amount: 0.02,
+    splitType: 'percentage',
+    splits: [
+      { member_id: 1, percentage: 25 },
+      { member_id: 2, percentage: 25 },
+      { member_id: 3, percentage: 25 },
+      { member_id: 4, percentage: 25 }
+    ]
+  });
+  assert.deepStrictEqual(
+    smallPercentage.map((split) => split.owed_amount),
+    [0.01, 0, 0.01, 0]
+  );
+  assert.strictEqual(total(smallPercentage), 2);
+
   assert.throws(
     () => validateAndBuildSplits({
       amount: 10,
