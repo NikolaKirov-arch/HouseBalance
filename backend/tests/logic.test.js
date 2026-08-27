@@ -143,6 +143,28 @@ function testInvalidSplits() {
   );
 }
 
+function testSettlementPlanWithCents() {
+  const plan = createSettlementPlan([
+    { member_id: 1, full_name: 'Member One', net_balance: -10.01 },
+    { member_id: 2, full_name: 'Member Two', net_balance: -4.99 },
+    { member_id: 3, full_name: 'Member Three', net_balance: 8 },
+    { member_id: 4, full_name: 'Member Four', net_balance: 7 }
+  ]);
+
+  assert.deepStrictEqual(
+    plan.map((payment) => ({
+      payer: payment.payer_member_id,
+      receiver: payment.receiver_member_id,
+      amount: payment.amount
+    })),
+    [
+      { payer: 1, receiver: 3, amount: 8 },
+      { payer: 1, receiver: 4, amount: 2.01 },
+      { payer: 2, receiver: 4, amount: 4.99 }
+    ]
+  );
+}
+
 async function testBalancesAndSettlementPlan() {
   const databaseResponses = [
     [
@@ -201,6 +223,7 @@ async function runTests() {
   testExactSplits();
   testPercentageSplits();
   testInvalidSplits();
+  testSettlementPlanWithCents();
   await testBalancesAndSettlementPlan();
   console.log('All HouseBalance financial logic tests passed.');
 }
