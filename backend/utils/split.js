@@ -122,13 +122,14 @@ function validateAndBuildSplits({ amount, splitType, splits }) {
   }
 
   let allocatedCents = 0;
-  return percentageSplits.map((split, index) => {
-    const isLast = index === percentageSplits.length - 1;
-    const owedCents = isLast
-      ? amountCents - allocatedCents
-      : Math.round((amountCents * split.percentageUnits) / 10000);
+  let percentageSoFar = 0;
 
-    allocatedCents += owedCents;
+  return percentageSplits.map((split) => {
+    percentageSoFar += split.percentageUnits;
+    const targetCents = Math.round((amountCents * percentageSoFar) / 10000);
+    const owedCents = targetCents - allocatedCents;
+    allocatedCents = targetCents;
+
     return {
       member_id: split.member_id,
       owed_amount: owedCents / 100,
@@ -138,4 +139,3 @@ function validateAndBuildSplits({ amount, splitType, splits }) {
 }
 
 module.exports = { toCents, validateAndBuildSplits };
-
