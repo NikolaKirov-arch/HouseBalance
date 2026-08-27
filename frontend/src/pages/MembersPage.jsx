@@ -80,7 +80,7 @@ export default function MembersPage() {
             <form className="row g-2" onSubmit={inviteMember}>
               <div className="col-md-8">
                 <label className="visually-hidden" htmlFor="invite-email">User email</label>
-                <input id="invite-email" className="form-control" type="email" placeholder="ana@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
+                <input id="invite-email" className="form-control" type="email" maxLength="255" placeholder="ana@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
               </div>
               <div className="col-md-4 d-grid">
                 <button className="btn btn-primary" type="submit" disabled={submitting}>{submitting ? 'Creating invitation...' : 'Create invitation'}</button>
