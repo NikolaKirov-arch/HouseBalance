@@ -87,6 +87,9 @@ router.post('/:groupId/expenses', auth, requireGroupMember, async (req, res, nex
   if (!validDate(expenseDate)) {
     return res.status(400).json({ error: 'Expense date must use the YYYY-MM-DD format.' });
   }
+  if (description && description.length > 255) {
+    return res.status(400).json({ error: 'Expense description may contain at most 255 characters.' });
+  }
 
   let builtSplits;
   try {
