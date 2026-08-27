@@ -1,125 +1,58 @@
 # HouseBalance
 
-HouseBalance is my Systems III seminar project. I made it for households whose
-members want to record shared expenses and see who owes whom. The application
-supports three ways of splitting an expense, records repayments, suggests a
-settlement plan and keeps a history of the main actions.
+HouseBalance is my Systems III project for managing shared household expenses.
+Members can record expenses, split them in different ways, see current balances
+and record payments between each other.
 
-I used the same technologies and database design described in the seminar report:
+## Main functions
 
-- Frontend: React, JavaScript, HTML, CSS, Bootstrap, Vite, React Router
-- Backend: Node.js, Express
-- Database: MySQL or MariaDB with `mysql2`
-- Authentication: JWT tokens and `bcryptjs` password hashes
-- HTTP requests: the browser's `fetch()` API
-- Configuration: `dotenv`
+- Register and log in
+- Create household groups
+- Invite registered users
+- Manage expense categories
+- Add equal, exact and percentage expenses
+- Delete expenses with permission checks
+- Record settlement payments
+- Calculate member balances
+- Suggest a settlement plan
+- View the group audit log
+
+## Technologies
+
+- React, JavaScript, Bootstrap and Vite
+- Node.js and Express
+- MySQL or MariaDB with `mysql2`
+- `fetch()` for frontend requests
+- JWT and `bcryptjs` for authentication
+
+The frontend and backend are kept in separate folders.
 
 ## Balance calculation
 
-Balances are not stored in a separate table. They are calculated from the saved
-expenses, expense shares and settlements.
-
-For every active member, the API calculates:
+Balances are calculated from expenses, expense splits and settlements. There is
+no separate balance table.
 
 ```text
-net balance = expenses paid
-            - expense shares owed
-            + settlement payments sent
-            - settlement payments received
+balance = paid expenses
+        - owed expense shares
+        + settlements sent
+        - settlements received
 ```
 
-- Positive balance: the member is owed money.
-- Negative balance: the member owes money.
-- Zero balance: the member is settled.
+A positive result means the member is owed money. A negative result means the
+member owes money.
 
-This means that each displayed balance can be checked against the records that
-were used to calculate it.
+## Database setup
 
-## Project structure
+1. Create or select a MySQL database.
+2. Import `backend/db/schema.sql`.
+3. Optionally import `backend/db/seed.sql`.
 
-```text
-housebalance/
-├── backend/
-│   ├── config/db.js
-│   ├── db/schema.sql
-│   ├── db/seed.sql
-│   ├── middleware/
-│   ├── routes/
-│   ├── tests/logic.test.js
-│   ├── utils/
-│   ├── .env.example
-│   ├── package.json
-│   └── server.js
-├── frontend/
-│   ├── src/components/
-│   ├── src/context/
-│   ├── src/pages/
-│   ├── src/App.jsx
-│   ├── src/api.js
-│   ├── src/main.jsx
-│   ├── src/styles.css
-│   ├── .env.example
-│   ├── index.html
-│   └── package.json
-├── docs/COURSE_ALIGNMENT.md
-└── README.md
-```
+The public seed file contains placeholders instead of working passwords and
+invitation codes. You can register users through the application, or replace the
+placeholders in a private copy before importing it.
 
-## Prerequisites
-
-- Node.js 16.13.1 or newer
-- npm
-- MySQL 8+ or a compatible MariaDB version
-- phpMyAdmin is optional but recommended for the course database setup
-
-The dependency versions in the project also work with Node 16.13.1 on the student server.
-
-## 1. Create or select the MySQL database
-
-On the university server, the database is normally assigned with this naming format:
-
-```text
-SISIII2026_YOUR_STUDENT_NUMBER
-```
-
-If it has already been created, do not create another database. Open phpMyAdmin and select the assigned database in the left sidebar.
-
-For local development, create a database in phpMyAdmin or run this after replacing the placeholder:
-
-```sql
-CREATE DATABASE SISIII2026_YOUR_STUDENT_NUMBER
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-```
-
-The SQL files intentionally do not contain a fixed `CREATE DATABASE` or `USE` statement. This prevents accidental import into the wrong student database.
-
-## 2. Import SQL files in the exact order
-
-In phpMyAdmin:
-
-1. Select `SISIII2026_YOUR_STUDENT_NUMBER`.
-2. Open **Import**.
-3. Import `backend/db/schema.sql` first.
-4. In a private local copy of `backend/db/seed.sql`, replace
-   `REPLACE_WITH_LOCAL_BCRYPT_HASH` and `REPLACE_WITH_LOCAL_INVITATION_CODE`
-   with local-only demo values.
-5. After the schema import succeeds, import the edited local seed file second.
-
-`schema.sql` drops and recreates the HouseBalance tables, so exporting important data before re-importing it is recommended.
-
-Command-line alternative:
-
-```bash
-mysql -u studenti -p SISIII2026_YOUR_STUDENT_NUMBER < backend/db/schema.sql
-mysql -u studenti -p SISIII2026_YOUR_STUDENT_NUMBER < backend/db/seed.sql
-```
-
-The schema includes primary keys, foreign keys, unique constraints, validation checks, and indexes for the requested lookup and join columns.
-
-## 3. Configure and run the backend
-
-From the `housebalance` directory:
+## Run the backend
 
 ```bash
 cd backend
@@ -128,35 +61,27 @@ npm install
 npm start
 ```
 
-Edit `backend/.env` before `npm start`:
+Configure `backend/.env`:
 
 ```dotenv
 PORT=5000
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=studenti
-DB_PASSWORD=YOUR_PASSWORD_HERE
-DB_NAME=SISIII2026_YOUR_STUDENT_NUMBER
-JWT_SECRET=replace_with_a_long_random_secret
+DB_PASSWORD=YOUR_PASSWORD
+DB_NAME=YOUR_DATABASE
+JWT_SECRET=YOUR_PRIVATE_SECRET
 ```
 
-Do not commit `.env`; it is excluded by `.gitignore`.
+The health check is available at:
 
-Verify the backend and database connection:
-
-```bash
-curl http://localhost:5000/api/health
+```text
+http://localhost:5000/api/health
 ```
 
-Expected response:
+## Run the frontend
 
-```json
-{"status":"ok","database":"connected"}
-```
-
-## 4. Configure and run the frontend
-
-Open a second terminal from the `housebalance` directory:
+In another terminal:
 
 ```bash
 cd frontend
@@ -165,182 +90,32 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite, normally `http://localhost:5173`.
+The default frontend address is `http://localhost:5173`.
 
-The frontend variable is:
-
-```dotenv
-VITE_API_URL=http://localhost:5000/api
-```
-
-If this variable is missing, the frontend uses `http://localhost:5000/api` by default.
-
-## Sample data
-
-The seed script adds three sample users and one group called `Apartment`. The
-public version does not include working passwords or invitation codes. These
-values must be set privately before importing the file. In the application,
-passwords are stored as bcrypt hashes.
-
-The sample `Apartment` group contains:
-
-- six default categories;
-- one equal expense, one exact expense, and one percentage expense;
-- one recorded settlement;
-- audit-history entries.
-
-Expected dynamically calculated balances are:
-
-| Member | Calculated balance | Meaning |
-| --- | ---: | --- |
-| Nikola Kirov | -20.00 EUR | owes money |
-| Ana Petrova | -20.00 EUR | owes money |
-| Marko Markov | +40.00 EUR | is owed money |
-
-The settlement plan therefore suggests two payments: Nikola to Marko for 20.00 EUR and Ana to Marko for 20.00 EUR.
-
-## Implemented functionality
-
-1. Registration, login, current-user check, and logout
-2. Create and list household groups
-3. Group dashboard and member list
-4. Invite registered users and accept invitations
-5. Create, list, and deactivate expense categories
-6. Add and list expenses
-7. Equal, exact-amount, and percentage splits
-8. Frontend and backend split validation
-9. Authorized expense deletion with dynamic recalculation
-10. Record and list settlement payments
-11. Explainable member-balance calculation
-12. Greedy debtor-to-creditor settlement plan
-13. Group audit/history log
-
-The backend uses database transactions for actions that change several related
-records, for example creating an expense together with its splits.
-
-## API endpoints
-
-Authentication:
-
-```text
-POST   /api/auth/register
-POST   /api/auth/login
-GET    /api/auth/me
-```
-
-Groups and invitations:
-
-```text
-POST   /api/groups
-GET    /api/groups
-GET    /api/groups/:groupId
-GET    /api/groups/:groupId/members
-GET    /api/invitations
-POST   /api/invitations/accept
-GET    /api/groups/:groupId/invitations
-POST   /api/groups/:groupId/invitations
-```
-
-Categories and expenses:
-
-```text
-GET    /api/groups/:groupId/categories
-POST   /api/groups/:groupId/categories
-PATCH  /api/groups/:groupId/categories/:categoryId/deactivate
-GET    /api/groups/:groupId/expenses
-POST   /api/groups/:groupId/expenses
-DELETE /api/groups/:groupId/expenses/:expenseId
-```
-
-Settlements, balances, and history:
-
-```text
-GET    /api/groups/:groupId/settlements
-POST   /api/groups/:groupId/settlements
-GET    /api/groups/:groupId/balances
-GET    /api/groups/:groupId/settlement-plan
-GET    /api/groups/:groupId/dashboard
-GET    /api/groups/:groupId/audit-log
-GET    /api/health
-```
-
-All protected requests use this header:
-
-```text
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-The backend checks active group membership for every group-scoped endpoint. Category and invitation management also require the `admin` role.
-
-## Validation rules
-
-- Expense and settlement amounts must be positive and use at most two decimal places.
-- Payers, receivers, and expense participants must be active members of the same group.
-- A settlement payer and receiver must be different members.
-- Exact split values must sum to the expense amount in integer cents.
-- Percentage values must sum to exactly 100.00%.
-- Equal splits distribute any remainder cents deterministically, so stored shares always equal the expense total.
-- Inactive categories remain connected to old expenses but cannot be selected for a new expense.
-- Only the expense creator or a group administrator may delete an expense.
-
-The frontend checks the form first, and the backend checks the same important
-financial and access rules before saving anything.
-
-## Verification commands
-
-Backend syntax and core financial logic:
+## Tests and build
 
 ```bash
 cd backend
 npm test
-find . -path './node_modules' -prune -o -name '*.js' -print0 | xargs -0 -n1 node --check
-```
 
-Frontend production build:
-
-```bash
-cd frontend
+cd ../frontend
 npm run build
 ```
 
-## Production build on the student server
+## Student server
 
-Do not use Docker for server deployment. Clone or pull the Git repository on the student server, configure the database and `backend/.env`, then build the frontend:
-
-```bash
-cd housebalance/frontend
-npm install
-VITE_API_URL=/api npm run build
-
-cd ../backend
-npm install
-NODE_ENV=production npm start
-```
-
-When `NODE_ENV=production`, Express serves the already-built `frontend/dist` directory and supports React Router refreshes. The frontend and backend remain separate source folders, but one Node process can expose the deployed application.
-
-To restart after code changes:
+Docker is not used for deployment. After configuring the database and backend
+environment, build the frontend and start Express:
 
 ```bash
-cd housebalance/frontend
+cd frontend
 VITE_API_URL=/api npm run build
 
 cd ../backend
 NODE_ENV=production npm start
 ```
-
-For a long-running university-server process, use the process-management method approved by the lecturer or server administrator.
 
 ## Git branches
 
-The repository uses two main branches:
-
-```text
-main          tested version
-development   ongoing work
-```
-
-Passwords, JWT secrets, `node_modules` and the generated `dist` folder are not
-committed.
-
-See `docs/COURSE_ALIGNMENT.md` for the direct mapping between the course/tutorial material and this implementation.
+- `development` contains ongoing work.
+- `main` contains tested versions.
