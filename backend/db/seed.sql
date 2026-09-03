@@ -1,6 +1,4 @@
 -- HouseBalance sample data
--- Import only after schema.sql.
--- Replace both placeholders locally before import; never commit real values.
 
 SET @DEMO_PASSWORD_HASH = 'REPLACE_WITH_LOCAL_BCRYPT_HASH';
 SET @DEMO_INVITATION_CODE = 'REPLACE_WITH_LOCAL_INVITATION_CODE';
