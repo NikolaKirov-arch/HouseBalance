@@ -1,7 +1,4 @@
 -- HouseBalance database schema
--- In phpMyAdmin, first select the database assigned to you, then import this file.
--- Balances are intentionally NOT stored. They are calculated from expense,
--- expense_split, and settlement records by the Express API.
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
